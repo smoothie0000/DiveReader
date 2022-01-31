@@ -1,5 +1,6 @@
+import os
 import time
-
+import configparser
 from tkinter import *
 
 import parse_file
@@ -9,16 +10,20 @@ from read_menu_page import ReadMenuPage
 from read_page import ReadPage
 from settings_page import SettingsPage
 
-
-BG_COLOR = '#000000'
-TEXT_COLOR = '#FFFFFF'
+config = configparser.ConfigParser()
+config.read('restore.ini', encoding='UTF-8')
 
 app = Tk()
 app.title('Scuba Dive Decompression Reader')
 app.config(bg=BG_COLOR)
 app.attributes('-fullscreen', True)
 app.resizable(False, False)
-app.bind("<Escape>", lambda event: app.destroy())
+app.bind("<Escape>", lambda event: destroy())
+
+def destroy():
+  with open('restore.ini', 'w', encoding='UTF-8') as configfile:
+    config.write(configfile)
+  app.destroy()
 
 # top menu
 time1 = ''
@@ -57,25 +62,62 @@ page_dict = {
   Page.SETTINGS: settings_page
 }
 
+# left/right button click events
+mutex = False
+press_time = 0
+button_pressed = 0 # 0 = left button pressed, 1 = right button pressed
 def left_button_pressed():
-  page_dict[current_page].left_button_pressed()
+  global mutex, press_time, button_pressed
+  if not mutex:
+    button_pressed = 0
+    press_time = round(time.time() * 1000)
+    mutex = True
 
 def right_button_pressed():
-  global current_page
-  next_page, from_info = page_dict[current_page].right_button_pressed()
-  
-  if next_page == Page.INVALID:
-    app.destroy()
-  elif len(from_info) > 1:
-    if next_page == Page.READ and from_info[0] == Page.READ_MENU:
-      page_dict[next_page].set_visable(from_info[1])
-  elif next_page != current_page:
-    page_dict[next_page].set_visable()
-  
-  current_page = next_page
+  global mutex, press_time, button_pressed
+  if not mutex:
+    button_pressed = 1
+    press_time = round(time.time() * 1000)
+    mutex = True
 
+def button_released():
+  global mutex, current_page
+  release_time = round(time.time() * 1000)
+  mutex = False
+  print(release_time - press_time)
+  # check if the button is holding for longer than 2 seconds
+  if release_time - press_time > 2000 and current_page == Page.READ:
+    # store to ini file
+    file_name = page_dict[Page.READ].get_file_name().split('.')[0]
+    page = page_dict[Page.READ].get_page()
+    config.set('PAGE', file_name, str(page))
+    page_dict[Page.READ_MENU].set_visable()
+    current_page = Page.READ_MENU
+  else:
+    if button_pressed == 0:
+      page_dict[current_page].left_button_pressed()
+    else:
+      next_page, from_info = page_dict[current_page].right_button_pressed()
+      
+      if next_page == Page.INVALID:
+        destroy()
+      elif len(from_info) > 1:
+        if next_page == Page.READ and from_info[0] == Page.READ_MENU:
+          file_name = os.path.basename(from_info[1]).split('.')[0]
+          try:
+            page = config['PAGE'][file_name]
+          except KeyError:
+            config.set('PAGE', file_name, '0')
+            page = 0
+          finally:
+            page_dict[next_page].set_visable(from_info[1], page)
+      elif next_page != current_page:
+        page_dict[next_page].set_visable()
+      
+      current_page = next_page
 
 app.bind("<F1>", lambda event: left_button_pressed())
 app.bind("<F2>", lambda event: right_button_pressed())
+app.bind("<KeyRelease>", lambda event: button_released())
 
 app.mainloop()

@@ -14,7 +14,7 @@ class ReadPage:
     if self.visable:
       self.set_visable()
 
-  def set_visable(self, file):
+  def set_visable(self, file, page):
     self.set_invisable()
 
     # init content area
@@ -31,6 +31,7 @@ class ReadPage:
     
     # load file and show the first page
     del self.file
+    self.page = int(page) - 1
     self.file = open(file, mode='r', encoding='UTF-8', buffering=10, errors='ignore')
     lib = importlib.import_module('build.' + os.path.basename(file).split('.')[0])
     self.page_dict = lib.page_dict
@@ -45,8 +46,17 @@ class ReadPage:
     for widget in self.bottom_menu.winfo_children():
       widget.destroy()
 
+  def get_file_name(self):
+    return os.path.basename(self.file.name)
+  
+  def get_page(self):
+    return self.page
+
   def next_page(self):
-    self.page += 1
+    if self.page >= len(self.page_dict) - 1:
+      self.page = len(self.page_dict) - 1
+    else:
+      self.page += 1
     offset = self.page_dict[self.page]['offset']
     size = self.page_dict[self.page]['size']
     self.file.seek(offset)
