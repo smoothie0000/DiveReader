@@ -19,6 +19,7 @@ def next_page(read_file):
   line = 0
   index = 0
   line_width = 0
+  display_size = 0
   while(line < NR_OF_LINES):
     if len(data) == 0:
       break
@@ -38,11 +39,11 @@ def next_page(read_file):
       if line_width > MAX_WIDTH - FONT_DICT[FONT_SIZE]['CN_Width'] or line_width == -1:
         line += 1
         data = data[index:]
+        display_size += index
         index = 0
         line_width = 0
         break
 
-  display_size = READ_SIZE - len(data)
   read_file.seek(offset)
   data = read_file.read(display_size)
   return offset, display_size
@@ -58,14 +59,11 @@ def parse_file(file, build_file):
   
   page = 0
   offset, size = next_page(read_file)
-  write_file.write(f"  {page}: {{ 'offset': {offset}, 'size': {size}}},\n")
-  page += 1
   while(size != 0):
-    offset, size = next_page(read_file)
     write_file.write(f"  {page}: {{ 'offset': {offset}, 'size': {size}}},\n")
     page += 1
+    offset, size = next_page(read_file)
   write_file.write(f'}}')
-
 
 # main code
 if not os.path.exists(BUILD_PATH):

@@ -21,9 +21,16 @@ app.resizable(False, False)
 app.bind("<Escape>", lambda event: destroy())
 
 def destroy():
-  with open('restore.ini', 'w', encoding='UTF-8') as configfile:
-    config.write(configfile)
-  app.destroy()
+  try:
+    file_name = page_dict[Page.READ].get_file_name().split('.')[0]
+    page = page_dict[Page.READ].get_page()
+    config.set('PAGE', file_name, str(page))
+  except:
+    pass
+  finally:
+    with open('restore.ini', 'w', encoding='UTF-8') as configfile:
+      config.write(configfile)
+    app.destroy()
 
 # top menu
 time1 = ''
@@ -84,9 +91,8 @@ def button_released():
   global mutex, current_page
   release_time = round(time.time() * 1000)
   mutex = False
-  print(release_time - press_time)
   # check if the button is holding for longer than 2 seconds
-  if release_time - press_time > 2000 and current_page == Page.READ:
+  if release_time - press_time > 1000 and current_page == Page.READ:
     # store to ini file
     file_name = page_dict[Page.READ].get_file_name().split('.')[0]
     page = page_dict[Page.READ].get_page()
@@ -113,7 +119,6 @@ def button_released():
             page_dict[next_page].set_visable(from_info[1], page)
       elif next_page != current_page:
         page_dict[next_page].set_visable()
-      
       current_page = next_page
 
 app.bind("<F1>", lambda event: left_button_pressed())

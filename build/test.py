@@ -54,8 +54,8 @@ page_dict = {
   52: { 'offset': 41322, 'size': 782},
   53: { 'offset': 42138, 'size': 782},
   54: { 'offset': 42954, 'size': 782},
-  55: { 'offset': 43770, 'size': 792},
-  56: { 'offset': 44596, 'size': 1574},
-  57: { 'offset': 46238, 'size': 3000},
-  58: { 'offset': 46890, 'size': 0},
+  55: { 'offset': 43770, 'size': 782},
+  56: { 'offset': 44586, 'size': 782},
+  57: { 'offset': 45402, 'size': 782},
+  58: { 'offset': 46218, 'size': 644},
 }
