@@ -17,7 +17,6 @@ app = Tk()
 app.title('Scuba Dive Decompression Reader')
 app.config(bg=BG_COLOR)
 app.attributes('-fullscreen', True)
-app.resizable(False, False)
 app.bind("<Escape>", lambda event: destroy())
 
 def destroy():
