@@ -86,11 +86,21 @@ def right_button_pressed():
     press_time = round(time.time() * 1000)
     mutex = True
 
+# Raspberry PI behaves differently: press and hold a key will triger KeyRelease event multiple times
+last_release_time = round(time.time() * 1000)
+def is_button_released():
+  global last_release_time
+  _current_time = round(time.time() * 1000)
+  if _current_time - last_release_time < 200:
+    last_release_time = _current_time
+  else:
+    button_released()
+
 def button_released():
   global mutex, current_page
   release_time = round(time.time() * 1000)
   mutex = False
-  # check if the button is holding for longer than 2 seconds
+  # check if the button is holding for longer than 1 seconds
   if release_time - press_time > 1000 and current_page == Page.READ:
     # store to ini file
     file_name = page_dict[Page.READ].get_file_name().split('.')[0]
@@ -122,6 +132,6 @@ def button_released():
 
 app.bind("<F1>", lambda event: left_button_pressed())
 app.bind("<F2>", lambda event: right_button_pressed())
-app.bind("<KeyRelease>", lambda event: button_released())
+app.bind("<KeyRelease>", lambda event: is_button_released())
 
 app.mainloop()
